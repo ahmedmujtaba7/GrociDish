@@ -1,0 +1,16 @@
+. Smart Recipe Recommendation System with Health Impact Analysis for family
+Description: Create a recipe recommendation system that not only suggests recipes based on ingredients but also analyzes the health impact of each recipe for users with specific dietary requirements.
+Innovative Feature: Integrate a nutritional analysis engine that provides health scores and suggestions for ingredient substitutions to improve nutritional value.
+Technologies: NLP for recipe analysis, machine learning for health impact scoring, Flask, MongoDB.
+additional features:
+1. Ingridient availability and substitution options
+2. Utilize AI to create weekly meal plans that consider users' health goals, dietary restrictions, and ingredient preferences. 
+Include shopping lists and batch cooking instructions.
+
+Foodie Family
+A personalized mobile app that does the following:
+1. Takes input: Family members, their ages, any health problem, any specification or restriction.
+2. Makes a grocery list depending upon your budget using AI keeping in mind the specification or restrictions. Any prompts given before generating grocery list will be understood by NLP.
+3. Makes a recipe for you everyday so your family recieves good nutritions in diet.
+4. Can ask for alternative recipes if you dont like it.
+5. Can suggest alternative products if one is unavailable.

@@ -9,7 +9,7 @@ import {
   } from 'typeorm';
   import { Family } from './Family';
   
-  @Entity()
+  @Entity('family_members')
   export class FamilyMember {
     @PrimaryGeneratedColumn()
     member_id!: number;
@@ -23,6 +23,9 @@ import {
   
     @Column({ type: 'int' })
     age!: number;
+
+    @Column({ type: 'varchar', length: 10, nullable: true})
+    password!: string;
   
     @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
     weight!: number;

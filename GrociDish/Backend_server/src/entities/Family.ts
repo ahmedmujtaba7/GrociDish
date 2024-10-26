@@ -12,7 +12,7 @@ import {
   import { User } from './User';
   import { FamilyMember } from './FamilyMember';
   
-  @Entity()
+  @Entity('family')
   export class Family {
     @PrimaryGeneratedColumn()
     family_id!: number;

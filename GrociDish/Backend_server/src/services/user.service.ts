@@ -1,4 +1,5 @@
 import { User } from '../entities/User';
+import { Family } from '../entities/Family';
 import { AppDataSource } from '../config/db.config';
 import { hashPassword, comparePassword } from '../utils/hashPassword';
 import { generateToken } from '../utils/jwt';
@@ -24,6 +25,13 @@ export const userService = {
 
     await sendVerificationEmail(email, verificationCode);
 
+    // Step 4: Create the Family for the new user
+    const familyRepository = AppDataSource.getRepository(Family);
+    const family = new Family();
+    family.user = newUser;  // Link family to the user
+    family.family_id = newUser.id;  // Ensure the family is tied to the user_id
+    await familyRepository.save(family);
+    
     return newUser;
   },
 

@@ -1,40 +1,26 @@
-// src/entities/Family.ts
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    OneToMany,
-    OneToOne,
-    JoinColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
-  } from 'typeorm';
-  import { User } from './User';
-  import { FamilyMember } from './FamilyMember';
-  
-  @Entity('family')
-  export class Family {
-    @PrimaryGeneratedColumn()
-    family_id!: number;
-  
-    // Foreign key to User entity, setting a one-to-one relationship with the user
-    @OneToOne(() => User, (user) => user.family, { onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'user_id' })
-    user!: User;
-  
-    @Column({ type: 'int', default: 0 })
-    member_count!: number;
-  
-    @CreateDateColumn()
-    created_at!: Date;
-  
-    @UpdateDateColumn()
-    updated_at!: Date;
-  
-    // One-to-many relationship to FamilyMember, allowing multiple members to belong to a family
-    @OneToMany(() => FamilyMember, (familyMember) => familyMember.family, {
-      cascade: true,
-    })
-    members!: FamilyMember[];
-  }
-  
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { FamilyMember } from './FamilyMember';
+
+@Entity('families')
+export class Family {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column({ type: 'varchar', length: 20, unique: true, nullable: true })
+  code!: string | null;
+
+  @Column({ type: 'int', default: 0 })
+  member_count!: number;
+
+  @Column({ type: 'boolean', default: false })
+  is_complete!: boolean;
+
+  @OneToMany(() => FamilyMember, (familyMember) => familyMember.family)
+  members!: FamilyMember[];
+
+  @CreateDateColumn()
+  created_at!: Date;
+
+  @UpdateDateColumn()
+  updated_at!: Date;
+}

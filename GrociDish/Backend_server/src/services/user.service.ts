@@ -1,5 +1,5 @@
 import { User } from '../entities/User';
-import { Family } from '../entities/Family';
+//import { Family } from '../entities/Family';
 import { AppDataSource } from '../config/db.config';
 import { hashPassword, comparePassword } from '../utils/hashPassword';
 import { generateToken } from '../utils/jwt';
@@ -8,7 +8,7 @@ import { sendVerificationEmail } from './email.service';
 
 // Function to register a new user
 export const userService = {
-  registerUser: async (email: string, password: string) => {
+  registerUser: async ( username: string, email: string, password: string) => {
     // Check if user already exists
     const existingUser = await AppDataSource.getRepository(User).findOneBy({ email });
     if (existingUser) throw new Error('User already exists');
@@ -20,17 +20,10 @@ export const userService = {
     const expiryTime = new Date(Date.now() + 15 * 60 * 1000); // Code expires in 15 minutes
 
     // Create and save the new user
-    const newUser = AppDataSource.getRepository(User).create({ email, password: hashedPassword, is_verified: false, verification_code: verificationCode, code_expiry: expiryTime});
+    const newUser = AppDataSource.getRepository(User).create({ name: username, email, password: hashedPassword, is_verified: false, verification_code: verificationCode, code_expiry: expiryTime});
     await AppDataSource.getRepository(User).save(newUser);
 
     await sendVerificationEmail(email, verificationCode);
-
-    // Step 4: Create the Family for the new user
-    const familyRepository = AppDataSource.getRepository(Family);
-    const family = new Family();
-    family.user = newUser;  // Link family to the user
-    family.family_id = newUser.id;  // Ensure the family is tied to the user_id
-    await familyRepository.save(family);
     
     return newUser;
   },
@@ -50,7 +43,7 @@ export const userService = {
   },
 
   // Function to authenticate a user (login)
-  authenticateUser: async (email: string, password: string) => {
+  authenticateUser: async ( email: string, password: string) => {
     const user = await AppDataSource.getRepository(User).findOneBy({ email });
     if (!user) throw new Error('User not found');
     if (!user.is_verified) throw new Error('User not verified')
@@ -65,7 +58,7 @@ export const userService = {
     return token;
   },
   // Function to update password
-  updatePassword: async (userId: number, currentPassword: string, newPassword: string): Promise<void> => {
+  updatePassword : async (userId: number, currentPassword: string, newPassword: string): Promise<void> => {
     const userRepository = AppDataSource.getRepository(User);
 
     // Fetch the user by ID
@@ -81,6 +74,10 @@ export const userService = {
         throw new Error('Current password is incorrect');
     }
 
+    if( currentPassword === newPassword ){
+      throw new Error('New password can not be same as old password')
+    }
+
     // Hash the new password
     const hashedNewPassword = await hashPassword(newPassword);
 
@@ -89,5 +86,26 @@ export const userService = {
 
     // Save the updated user
     await userRepository.save(user);
+  },
+  // check wheather or not a user belongs to a family or not
+  hasFamily : async (userId: number) => {
+    const userRepository = AppDataSource.getRepository(User);
+
+    // Fetch the user by ID
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      relations: ['family'], // Ensure family relation is fetched
+    });
+    if (!user) {
+      throw new Error('User not found' );
+    }
+    
+    const hasFamily = !!user.family;
+
+    if(hasFamily){
+      return true;
+    }
+    else 
+      return false;
   },
 };

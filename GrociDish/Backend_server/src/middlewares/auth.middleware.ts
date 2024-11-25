@@ -3,7 +3,6 @@ import {verifyToken} from '../utils/jwt'
 
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
     const token: any = req.header('Authorization')?.split(' ')[1];
-
     if (!token) {
         res.status(401).json({ message: 'Unauthorized' });
     }
@@ -16,3 +15,4 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
         res.status(403).json({ message: 'Forbidden' });
     }
 };
+

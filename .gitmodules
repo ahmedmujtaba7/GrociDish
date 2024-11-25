@@ -1,0 +1,3 @@
+[submodule "GrociDish/GrociDish/GrociDish-Frontend"]
+	path = GrociDish/GrociDish/GrociDish-Frontend
+	url = https://github.com/ahmedmujtaba7/GrociDish.git

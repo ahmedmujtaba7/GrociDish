@@ -4,8 +4,9 @@ import { userService } from '../services/user.service';
 // Register a new user
 export const register = async (req: Request, res: Response):Promise<void> => {
   try {
-    const { email, password } = req.body;  // Extract email and password from the request body
-    const user = await userService.registerUser(email, password);  // Call the service to handle registration
+    console.log(req.body)
+    const { username, email, password } = req.body;  // Extract email and password from the request body
+    const user = await userService.registerUser(username, email, password);  // Call the service to handle registration
     const userId: Number = user.id;
     res.status(201).json({ message: 'A code has been sent to your email. Please verify', userId });
   } catch (error) {
@@ -31,6 +32,7 @@ export const verifyCode = async (req: Request, res: Response) => {
 // Authenticate user (Login)
 export const authenticate = async (req: Request, res: Response):Promise<void> => {
   try {
+    console.log(req.body)
     const { email, password } = req.body;  // Extract email and password from the request body
     const token = await userService.authenticateUser(email, password);  // Call the service to handle login
     res.status(200).json({ token });
@@ -50,3 +52,15 @@ export const updatePasswordHandler = async (req: Request, res: Response): Promis
       res.status(400).json({ message:'Error updating password' ,error });
   }
 };
+
+export const hasFamily = async (req: Request, res: Response): Promise<void> => {
+  const userId = res.locals.userId;
+
+  try {
+    const response = await userService.hasFamily(userId);
+    res.status(200).json({ response });
+  }
+  catch (error) {
+    res.status(400).json({ message:'Error getting if the user has a family or not.' ,error });
+  }
+}

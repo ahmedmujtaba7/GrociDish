@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, authenticate, updatePasswordHandler, verifyCode } from '../controllers/user.controller';
+import { register, authenticate, updatePasswordHandler, verifyCode, hasFamily } from '../controllers/user.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
 const router = Router();
@@ -13,5 +13,7 @@ router.post('/authenticate', authenticate);
 
 // Update User password
 router.put('/update-password', authenticateToken, updatePasswordHandler)
+
+router.get('/hasFamily', authenticateToken, hasFamily)
 
 export default router;

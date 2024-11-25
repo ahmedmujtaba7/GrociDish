@@ -1,8 +1,9 @@
 import { DataSource } from 'typeorm';
 import { User } from '../entities/User';
 import * as dotenv from 'dotenv';
-import { FamilyMember } from '../entities/FamilyMember';
 import { Family } from '../entities/Family';
+import { HealthProfile } from '../entities/HealthProfile';
+import { FamilyMember } from '../entities/FamilyMember';
 dotenv.config();
 // Set up PostgreSQL connection using TypeORM
 export const AppDataSource = new DataSource({
@@ -12,6 +13,6 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: [User, Family, FamilyMember],
+  entities: [User, Family, HealthProfile, FamilyMember],
   synchronize: true,  // Automatically syncs the schema, avoid this in production
 });

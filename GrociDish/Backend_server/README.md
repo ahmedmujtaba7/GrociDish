@@ -5,8 +5,15 @@ GrociDish Backend
 3. POST /users/authenticate
 4. PUT  /users/update-password
 5. GET /users/hasFamily
-6. POST /family/createFamily
-7. POST /family/joinFamily
+6. GET /users/hasHealthProfile
+7. POST /family/createFamily
+8. POST /family/joinFamily
+9. GET /family/getAllRoles
+10. POST /healthProfile/processHealthProfile //used for creation and updation of health profile.
+11. POST /healthProfile/getHealthProfile
+12. POST /roles/assign
+13. GET /roles/getRoles
+14. POST /caloric/getCaloricInfo
 
 --API's yet to be built--
 8. GET /family/isComplete
@@ -24,3 +31,4 @@ GrociDish Backend
 
 // check if the family is completed or not
 // create refresh tokens
+// check whether or not a user has a health profile

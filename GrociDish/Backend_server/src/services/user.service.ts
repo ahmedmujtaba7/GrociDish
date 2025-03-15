@@ -1,5 +1,4 @@
 import { User } from '../entities/User';
-//import { Family } from '../entities/Family';
 import { AppDataSource } from '../config/db.config';
 import { hashPassword, comparePassword } from '../utils/hashPassword';
 import { generateToken } from '../utils/jwt';
@@ -58,16 +57,15 @@ export const userService = {
     return token;
   },
   // Function to update password
-  updatePassword : async (userId: number, currentPassword: string, newPassword: string): Promise<void> => {
+  updatePassword : async (userId: number, newPassword: string, currentPassword: string): Promise<void> => {
     const userRepository = AppDataSource.getRepository(User);
-
     // Fetch the user by ID
     const user = await userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
         throw new Error('User not found');
     }
-
+    console.log("updating password")
     // Verify current password
     const isPasswordValid = await comparePassword(currentPassword, user.password);
     if (!isPasswordValid) {
@@ -83,14 +81,13 @@ export const userService = {
 
     // Update user's password
     user.password = hashedNewPassword;
-
+    console.log("updating password 2")
     // Save the updated user
     await userRepository.save(user);
   },
   // check wheather or not a user belongs to a family or not
   hasFamily : async (userId: number) => {
     const userRepository = AppDataSource.getRepository(User);
-
     // Fetch the user by ID
     const user = await userRepository.findOne({
       where: { id: userId },
@@ -102,10 +99,27 @@ export const userService = {
     
     const hasFamily = !!user.family;
 
-    if(hasFamily){
+    if(hasFamily)
       return true;
-    }
     else 
       return false;
   },
+
+  hasHealthProfile : async (userId: number) => {
+    const userRepository = AppDataSource.getRepository(User);
+    // Fetch the user by ID
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      relations: ['healthProfile'], // Ensure healthProfile relation is fetched
+    });
+    if (!user) {
+      throw new Error('User not found' );
+    }
+
+    const hasHealthProfile = !!user.healthProfile;
+    if(hasHealthProfile)
+      return true;
+    else 
+      return false;
+  }
 };

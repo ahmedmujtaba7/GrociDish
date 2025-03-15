@@ -19,29 +19,67 @@ export class RoleService {
     };
   }
 
-  async assignRole(userId: number, role: string) {
+
+  async assignRole(ownerId: number, targetName: string, role: string) {
     const familyMemberRepo = AppDataSource.getRepository(FamilyMember);
-    const userRepo= AppDataSource.getRepository(User);
-
-    const user = await userRepo.findOne({
-        where: { id: userId },
-        relations: ['family'], // Ensure the `family` relationship is loaded
+    const userRepo = AppDataSource.getRepository(User);
+  
+    const owner = await userRepo.findOne({
+      where: { id: ownerId },
+      relations: ['family'],
     });
-    
-    if (!user || !user.family) {
-        throw new Error("user does not have a family"); // No user or no family associated with the user
+  
+    if (!owner || !owner.family) {
+      throw new Error('Requesting user does not belong to a family');
     }
-
-    const familyId = user.family.id;;
-    
-    const familyMember = await familyMemberRepo.findOneBy({ family: { id: familyId }, user: { id: userId } });
-    if (!familyMember) throw new Error('Family member not found');
-
-    if (role === 'owner') familyMember.is_owner = true;
-    else if (role === 'grocery_generator') familyMember.is_grocery_generator = true;
-    else if (role === 'recipe_selector') familyMember.is_recipe_selector = true;
-    else throw new Error('Invalid role');
-
-    return await familyMemberRepo.save(familyMember);
+  
+    const ownerMember = await familyMemberRepo.findOne({
+      where: { family: { id: owner.family.id }, user: { id: ownerId }, is_owner: true },
+    });
+  
+    if (!ownerMember) {
+      throw new Error('Only family owners can assign roles');
+    }
+  
+    const targetUser = await userRepo.findOne({
+      where: { name: targetName, family: { id: owner.family.id } },
+    });
+  
+    if (!targetUser) {
+      throw new Error('Target user not found in your family');
+    }
+  
+    const targetMember = await familyMemberRepo.findOne({
+      where: { user: { id: targetUser.id }, family: { id: owner.family.id } },
+    });
+  
+    if (!targetMember) {
+      throw new Error('Target family member not found');
+    }
+  
+    // Find the current role holder
+    let currentRoleHolder: FamilyMember | null = null;
+  
+    if (role === 'grocery_generator') {
+      currentRoleHolder = await familyMemberRepo.findOne({
+        where: { family: { id: owner.family.id }, is_grocery_generator: true },
+      });
+      if (currentRoleHolder) currentRoleHolder.is_grocery_generator = false;
+      targetMember.is_grocery_generator = true;
+    } else if (role === 'recipe_selector') {
+      currentRoleHolder = await familyMemberRepo.findOne({
+        where: { family: { id: owner.family.id }, is_recipe_selector: true },
+      });
+      if (currentRoleHolder) currentRoleHolder.is_recipe_selector = false;
+      targetMember.is_recipe_selector = true;
+    } else {
+      throw new Error(`Invalid role: ${role}`);
+    }
+  
+    // Save updates to the database
+    if (currentRoleHolder) await familyMemberRepo.save(currentRoleHolder);
+    await familyMemberRepo.save(targetMember);
+  
+    return targetMember;
   }
 }

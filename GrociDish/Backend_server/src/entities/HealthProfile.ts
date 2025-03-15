@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { CaloricInformation } from './CaloricInformation';
 import { User } from './User';
 
 @Entity('health_profiles')
@@ -6,7 +7,7 @@ export class HealthProfile {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => User, (user) => user.healthProfile, { onDelete: 'CASCADE' })
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
@@ -30,6 +31,9 @@ export class HealthProfile {
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   calories_tracked!: number;
+
+  @OneToOne(() => CaloricInformation, (caloricInformation) => caloricInformation.healthProfile, { cascade: true })
+  caloricInformation!: CaloricInformation;
 
   @CreateDateColumn()
   created_at!: Date;

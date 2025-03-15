@@ -39,7 +39,6 @@ export const createFamily = async (userId: number) => {
     const userRepo = AppDataSource.getRepository(User);
     const family = await familyRepo.findOneBy({ code: familyCode });
     console.log('familyCode:', familyCode);
-    console.log('Type of familyCode:', typeof familyCode);
     
     if (!family) throw new Error('Family not found');
     console.log("all good in joining family")
@@ -85,5 +84,114 @@ export const createFamily = async (userId: number) => {
       is_grocery_generator: member.is_grocery_generator,
       is_recipe_selector: member.is_recipe_selector,
     }));
+  };
+
+  export const getFamilyCode = async (userId :number) => {
+    const userRepo = AppDataSource.getRepository(User);
+    const user = await userRepo.findOne({
+      where: { id: userId },
+      relations: ['family'], // Ensure the `family` relationship is loaded
+    });
+    if (!user || !user.family) {
+      throw new Error("the user is not in a family"); // No user or no family associated with the user
+    }
+    const familyCode = user.family.code;
+
+    return familyCode;
   }
 
+  export const getFamilyNames = async (userId: number) => {
+    const userRepo = AppDataSource.getRepository(User);
+    const familyMemberRepo = AppDataSource.getRepository(FamilyMember);
+  
+    // Fetch the user along with their family
+    const user = await userRepo.findOne({
+      where: { id: userId },
+      relations: ['family'], // Load the family relationship
+    });
+  
+    if (!user || !user.family) {
+      throw new Error('User does not belong to a family');
+    }
+  
+    // Fetch all family members belonging to the user's family
+    const familyMembers = await familyMemberRepo.find({
+      where: { family: { id: user.family.id } }, // Filter by family ID
+      relations: ['user'], // Load the user relationship to access names
+    });
+  
+    // Transform the data to return only `id` and `name`
+    return familyMembers.map((member) => ({
+      id: member.user.id,
+      name: member.user.name,
+    }));
+  };
+
+  export const getFamilyDetails = async (userId: number) => {
+    const userRepo = AppDataSource.getRepository(User);
+    const user = await userRepo.findOne({
+      where: { id: userId },
+      relations: ['family'],
+    });
+  
+    if (!user || !user.family) {
+      throw new Error('User does not belong to a family');
+    }
+  
+    const familyMemberRepo = AppDataSource.getRepository(FamilyMember);
+    const members = await familyMemberRepo.find({
+      where: { family: { id: user.family.id } },
+      relations: ['user'],
+    });
+  
+    const familyDetails = {
+      member_count: members.length,
+      is_complete: user.family.is_complete,
+      members: members.map((member) => ({
+        id: member.user.id,
+        name: member.user.name,
+        is_owner: member.is_owner,
+        is_grocery_generator: member.is_grocery_generator,
+        is_recipe_selector: member.is_recipe_selector,
+      })),
+    };
+  
+    return familyDetails;
+  };
+
+  export const setFamilyCompletionStatus = async (userId: number, isComplete: boolean) => {
+    const userRepo = AppDataSource.getRepository(User);
+    const familyRepo = AppDataSource.getRepository(Family);
+    const familyMemberRepo = AppDataSource.getRepository(FamilyMember);
+  
+    // Fetch the user's family
+    const user = await userRepo.findOne({
+      where: { id: userId },
+      relations: ['family'],
+    });
+  
+    if (!user || !user.family) {
+      throw new Error('User does not belong to a family.');
+    }
+  
+    // Verify the user is the owner of the family
+    const ownerMember = await familyMemberRepo.findOne({
+      where: { family: { id: user.family.id }, user: { id: userId }, is_owner: true },
+    });
+  
+    if (!ownerMember) {
+      throw new Error('Only the family owner can update the family status.');
+    }
+  
+    // Update the `is_complete` attribute
+    const family = await familyRepo.findOne({ where: { id: user.family.id } });
+  
+    if (!family) {
+      throw new Error('Family not found.');
+    }
+  
+    family.is_complete = isComplete;
+    await familyRepo.save(family);
+  
+    return isComplete;
+  };

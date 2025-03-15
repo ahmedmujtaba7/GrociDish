@@ -43,9 +43,9 @@ export class User {
   @JoinColumn({ name: 'family_id' }) // Use a clear name for the foreign key column
   family!: Family | null;
 
-  @OneToOne(() => HealthProfile, (healthProfile) => healthProfile.user, { cascade: true , nullable: true})
-  @JoinColumn({name: 'health_profile_id'})
+  @OneToOne(() => HealthProfile, (healthProfile) => healthProfile.user, { cascade: true })
   healthProfile!: HealthProfile;
+
 
   @CreateDateColumn()
   created_at!: Date;

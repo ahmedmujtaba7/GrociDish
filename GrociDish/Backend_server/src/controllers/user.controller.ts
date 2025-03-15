@@ -42,11 +42,11 @@ export const authenticate = async (req: Request, res: Response):Promise<void> =>
 };
 
 export const updatePasswordHandler = async (req: Request, res: Response): Promise<void> => {
-  const { currentPassword, newPassword } = req.body;
+  const { newPassword, oldPassword } = req.body;
   const userId = res.locals.userId;  // Assuming the userId is attached from the JWT middleware
 
   try {
-      await userService.updatePassword(userId, currentPassword, newPassword);
+      await userService.updatePassword(userId,  newPassword, oldPassword);
       res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
       res.status(400).json({ message:'Error updating password' ,error });
@@ -63,4 +63,16 @@ export const hasFamily = async (req: Request, res: Response): Promise<void> => {
   catch (error) {
     res.status(400).json({ message:'Error getting if the user has a family or not.' ,error });
   }
-}
+};
+
+export const hasHealthProfile = async (req: Request, res: Response): Promise<void> => {
+  const userId = res.locals.userId;
+
+  try {
+    const response = await userService.hasHealthProfile(userId);
+    res.status(200).json({ response });
+  }
+  catch (error) {
+    res.status(400).json({ message:'Error getting if the user has a health profile or not.' ,error });
+  }
+};

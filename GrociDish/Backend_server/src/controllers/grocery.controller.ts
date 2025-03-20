@@ -1,35 +1,35 @@
 import { Request, Response } from "express";
-import * as groceryService from '../services/grocery.service';
+import { GroceryListService } from "../services/grocery.service";
 
-export const createGroceryList = async (req: Request, res: Response) => {
-    const userId = res.locals.userId;
-    const { budget, diseases } = req.body;
+export class GroceryListController {
+  // **Generate and Store Grocery List**
+  static async generateGroceryList(req: Request, res: Response) {
     try {
-        const newGroceryList = await groceryService.createGroceryList(userId, budget, diseases);
-        res.status(200).json({ message: "A grocery list has been created successfully", groceryListId: newGroceryList.id })
-    }
-    catch (error) {
-        res.status(501).json({ message: "Error creating grocery list", error });
-    }
-};
+      const userId = res.locals.userId;
+      const {budget} = req.body;
+      if (!userId || !budget) {
+        res.status(400).json({ success: false, message: "userId and budget are required" });
+      }
 
-export const getGroceryList = async (req: Request, res: Response) => {
-    const userId = res.locals.userId;
-    try {
-        const groceryList = await groceryService.getGroceryList(userId);
-        res.status(200).json({ message: "Grocery list retrieved successfully", groceryList });
+      const result = await GroceryListService.generateGroceryList(userId, budget);
+      res.status(result.success ? 201 : 400).json(result);
     } catch (error) {
-        res.status(501).json({ message: "Error retrieving grocery list", error });
+      console.error("Error generating grocery list:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
     }
-}
+  }
 
-export const updateGroceryList = async (req: Request, res: Response) => {
-    const userId = res.locals.userId;
-    const { groceryListId, groceryItems } = req.body;
+  // **Get Grocery List by User ID**
+  static async getGroceryListByUser(req: Request, res: Response) {
     try {
-        await groceryService.updateGroceryList(userId, groceryListId, groceryItems);
-        res.status(200).json({ message: "Grocery list updated successfully" });
+      const userId = res.locals.userId;
+      if (!userId) res.status(400).json({ success: false, message: "Invalid user ID" });
+
+      const result = await GroceryListService.getGroceryListByUser(userId);
+      res.status(result.success ? 200 : 404).json(result);
     } catch (error) {
-        res.status(501).json({ message: "Error updating grocery list", error });
+      console.error("Error fetching grocery list:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
     }
+  }
 }

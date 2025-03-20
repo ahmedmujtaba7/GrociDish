@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { RecipeRecommendationService } from '../services/recipe.service';
 
 export const recommendRecipe= async (req: Request, res: Response) => {
-  const userId = res.locals.id; // Retrieved from auth middleware
+  const userId = res.locals.userId; // Retrieved from auth middleware
   try {
       const RecommendedRecipe = await RecipeRecommendationService.recommendRecipes(userId);
       res.status(200).json({ success: true, data: RecommendedRecipe });

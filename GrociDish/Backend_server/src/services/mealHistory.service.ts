@@ -15,12 +15,12 @@ export class MealHistoryService {
 
     // Find the family of the user
     const familyMember = await familyMemberRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['family'],
+        where: { user: { id: userId } },
+        relations: ['family'],
     });
 
     if (!familyMember || !familyMember.family) {
-      throw new Error('User does not belong to any family.');
+        throw new Error(`User ${userId} does not belong to any family.`);
     }
 
     const familyId = familyMember.family.id;
@@ -28,60 +28,68 @@ export class MealHistoryService {
     // Check if the recipe exists
     const recipe = await recipeRepository.findOne({ where: { id: recipeId } });
     if (!recipe) {
-      throw new Error('Recipe not found.');
+        throw new Error(`Recipe with ID ${recipeId} not found.`);
     }
 
-    // **Fix: Ensure mealType consistency for "LUNCH/DINNER"**
-    if (mealType === 'LUNCH' || mealType === 'DINNER') {
-      mealType = 'LUNCH/DINNER';
+    // Ensure mealType consistency
+    if (['LUNCH', 'DINNER', 'LUNCH/DINNER'].includes(mealType)) {
+        mealType = 'LUNCH/DINNER';
     }
 
-    // **Fix: Multiply calorie/macronutrient values by family size**
+    // Get family size
     const familyMembers = await familyMemberRepository.find({
-      where: { family: { id: familyId } },
-      relations: ['user'],
+        where: { family: { id: familyId } },
+        relations: ['user'],
     });
     const memberCount = familyMembers.length;
 
+    // Calculate total calories
     const totalCalories = recipe.caloriesPerServing * memberCount;
     const totalCarbs = recipe.carbohydrates * memberCount;
     const totalProteins = recipe.proteins * memberCount;
     const totalFats = recipe.fats * memberCount;
 
+    console.log(`total calories: ${totalCalories}, total carbs: ${totalCarbs}, total proteins: ${totalProteins}, total fats: ${totalFats}`);
     // Store meal selection in history
     const mealRecord = mealHistoryRepository.create({
-      family: { id: familyId },
-      recipe: { id: recipeId },
-      mealType,
-      selected: true,
+        family: { id: familyId },
+        recipe: { id: recipeId },
+        mealType,
+        selected: true,
     });
+
+    console.log(`Member Count: ${memberCount}`);
+    console.log(`Calories per Serving: ${recipe.caloriesPerServing}`);
+    console.log(`Total Calories: ${totalCalories}`);
+    console.log(`Calories per Member: ${totalCalories / memberCount}`);
 
     await mealHistoryRepository.save(mealRecord);
 
-    // **Update caloric information for each family member**
+    // Update caloric information for each family member
     for (const member of familyMembers) {
-      const healthProfile = await healthProfileRepository.findOne({
-        where: { user: { id: member.user.id } },
-        relations: ['caloricInformation'],
-      });
+        const healthProfile = await healthProfileRepository.findOne({
+            where: { user: { id: member.user.id } },
+            relations: ['caloricInformation'],
+        });
 
-      if (healthProfile && healthProfile.caloricInformation) {
-        const caloricInfo = healthProfile.caloricInformation;
+        if (healthProfile && healthProfile.caloricInformation) {
+            const caloricInfo = healthProfile.caloricInformation;
+            caloricInfo.calories_consumed_per_day = Number(caloricInfo.calories_consumed_per_day ?? 0) + (totalCalories / memberCount);
+            caloricInfo.calories_consumed_per_week = Number(caloricInfo.calories_consumed_per_week ?? 0) + (totalCalories / memberCount);
+            caloricInfo.calories_consumed_per_month = Number(caloricInfo.calories_consumed_per_month ?? 0) + (totalCalories / memberCount);
 
-        // Update calorie tracking per user
-        caloricInfo.calories_consumed_per_day = (caloricInfo.calories_consumed_per_day || 0) + totalCalories / memberCount;
-        caloricInfo.calories_consumed_per_week = (caloricInfo.calories_consumed_per_week || 0) + totalCalories / memberCount;
-        caloricInfo.calories_consumed_per_month = (caloricInfo.calories_consumed_per_month || 0) + totalCalories / memberCount;
 
-        // Update macronutrient consumption
-        caloricInfo.consumed_carbs = (caloricInfo.consumed_carbs || 0) + totalCarbs / memberCount;
-        caloricInfo.consumed_proteins = (caloricInfo.consumed_proteins || 0) + totalProteins / memberCount;
-        caloricInfo.consumed_fats = (caloricInfo.consumed_fats || 0) + totalFats / memberCount;
 
-        await caloricInfoRepository.save(caloricInfo);
-      }
+            caloricInfo.consumed_carbs = Number(caloricInfo.consumed_carbs || 0) + (totalCarbs / memberCount);
+            caloricInfo.consumed_proteins = Number(caloricInfo.consumed_proteins || 0) + (totalProteins / memberCount);
+            caloricInfo.consumed_fats = Number(caloricInfo.consumed_fats || 0) + (totalFats / memberCount);
+            console.log((caloricInfo.calories_consumed_per_day || 0) + (totalCalories / memberCount))
+            console.log(`calories consumed per day: ${caloricInfo.calories_consumed_per_day}, calories consumed per week: ${caloricInfo.calories_consumed_per_week}, calories consumed per month: ${caloricInfo.calories_consumed_per_month}`);
+
+            await caloricInfoRepository.save(caloricInfo);
+        }
     }
 
-    return { message: 'Meal selection recorded and caloric information updated successfully' };
-  }
+    return { message: `Meal recorded for recipe ${recipeId} as ${mealType}` };
+}
 }

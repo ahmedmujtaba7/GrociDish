@@ -72,7 +72,7 @@ export class RecipeRecommendationService {
         where: { family: { id: familyId } },
         relations: ['recipe'],
         order: { created_at: 'DESC' },
-        take: 9, // Avoid last 12 recently selected meals
+        take: 9, // Avoid last 9 recently selected meals
     });
 
     let excludedRecipeIds = [

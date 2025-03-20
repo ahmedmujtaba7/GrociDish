@@ -8,6 +8,7 @@ import { CaloricInformation } from '../entities/CaloricInformation';
 import { Recipe } from '../entities/Recipe';
 import { RecipePreference } from '../entities/RecipePreference';  
 import { MealHistory } from '../entities/MealHistory';
+import { GroceryList } from '../entities/Grocery';
 
 dotenv.config();
 
@@ -19,6 +20,6 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: [User, Family, HealthProfile, FamilyMember, CaloricInformation, Recipe, RecipePreference, MealHistory],
+  entities: [User, Family, HealthProfile, FamilyMember, CaloricInformation, Recipe, RecipePreference, MealHistory, GroceryList],
   synchronize: true,  // Automatically syncs the schema, avoid this in production
 });

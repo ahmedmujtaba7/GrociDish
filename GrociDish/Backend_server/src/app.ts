@@ -8,6 +8,7 @@ import roleRoutes from './routes/role.routes';
 import healthProfileRoutes from './routes/healthProfile.routes';
 import caloricRoutes from './routes/caloric.routes'
 import recipeRoutes from './routes/recipe.routes';
+import groceryRoutes from './routes/grocery.routes';
 import dotenv from 'dotenv';
 
 import { Recipe } from './entities/Recipe';
@@ -33,6 +34,7 @@ app.use('/family', familyRoutes);
 app.use('/roles', roleRoutes);
 app.use('/healthProfile', healthProfileRoutes);
 app.use('/caloric', caloricRoutes);
+app.use('/grocery', groceryRoutes);
 
 export default app;
 
